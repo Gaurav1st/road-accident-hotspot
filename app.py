@@ -50,15 +50,44 @@ m3.metric("Test accuracy", f"{acc:.1%}")
 st.warning("Academic prototype: records and coordinates are generated for demonstration. Do not use these predictions for real-world safety decisions.")
 
 tab1, tab2, tab3 = st.tabs(["🗺️ Hotspot Map", "🔎 Predict Risk", "📊 Data & Model"])
+
 with tab1:
     st.subheader("Illustrative road-risk map")
-    risk_filter = st.multiselect("Show risk levels", ["Low", "Medium", "High"], default=["Medium", "High"])
-    map_df = df[df["Risk Level"].isin(risk_filter)].sample(min(500, len(df[df["Risk Level"].isin(risk_filter)])), random_state=42)
-    fig = px.scatter_mapbox(map_df, lat="Latitude", lon="Longitude", color="Risk Level",
-                            hover_data=features, zoom=5, height=520,
-                            mapbox_style="open-street-map",
-                            color_discrete_map={"Low":"#2ca25f","Medium":"#f0ad4e","High":"#d62728"})
-    st.plotly_chart(fig, use_container_width=True)
+
+    risk_filter = st.multiselect(
+        "Show risk levels",
+        ["Low", "Medium", "High"],
+        default=["Medium", "High"]
+    )
+
+    filtered_df = df[df["Risk Level"].isin(risk_filter)]
+
+    if filtered_df.empty:
+        st.info("Please select at least one risk level to display the map.")
+    else:
+        map_df = filtered_df.sample(
+            n=min(500, len(filtered_df)),
+            random_state=42
+        )
+
+        fig = px.scatter_map(
+            map_df,
+            lat="Latitude",
+            lon="Longitude",
+            color="Risk Level",
+            hover_data=features,
+            zoom=5,
+            height=520,
+            map_style="open-street-map",
+            color_discrete_map={
+                "Low": "#2ca25f",
+                "Medium": "#f0ad4e",
+                "High": "#d62728"
+            }
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
 with tab2:
     st.subheader("Try a sample road condition")
     c1, c2 = st.columns(2)
